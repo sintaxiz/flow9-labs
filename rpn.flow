@@ -1,0 +1,137 @@
+// functions to deal with reverse polish notation
+
+import ds/tree;
+import maybe;
+import lingo/pegcode/driver;
+import ds/list;
+import arexp;
+
+export {
+    
+
+RpnElem ::= RpnOp, RpnVal;
+RpnVal(val : int);
+RpnOp(op : (int, int) -> int, opString : string);
+
+rpn2s(rpnArr : [RpnElem]) -> string {
+    fold(rpnArr, "",  \x, rpnElem -> switch (rpnElem : RpnElem) {
+        RpnOp(op, opString): {
+            x + opString + " ";
+        }
+        RpnVal(val): {
+            x + i2s(val) + " ";
+        }
+    });
+}
+
+rpnElem2stack(stack : [int], rpnElem : RpnElem) -> [int] {
+    switch (rpnElem : RpnElem) {
+        RpnOp(op, opString): {
+            newStackTail = [op(stack[length(stack) - 2], stack[length(stack) - 1])];
+            //println(  concat(removeIndex(removeIndex(stack, length(stack) - 1), length(stack) - 1), newStackTail));
+            concat(subrange(stack, 0, length(stack) - 2), newStackTail);
+        }
+        RpnVal(val): {
+            concat(stack, [val]);
+        }
+    }
+}
+
+rpn2i(rpnArr : [RpnElem]) -> int {
+    stack = fold(rpnArr, [], rpnElem2stack);
+    stack[0];
+}
+
+rpnElem2stackLIST(rpnStack : ref List<int>, rpnElem : RpnElem) -> ref List<int> {
+    switch (rpnElem : RpnElem) {
+        RpnOp(op, opString): {
+           switch (^rpnStack : List) {
+                EmptyList(): rpnStack;
+                Cons(h, t): {
+                    x = h;
+                    switch (t : List) {
+                        EmptyList(): rpnStack;
+                        Cons(h1, t1): { 
+                            y = h1; 
+                            t1Ref = ref t1; 
+                            rlistPush(t1Ref, op(x, y)); 
+                            t1Ref;
+                        }
+                    }
+                }
+            }
+        }
+        RpnVal(val): {
+            rlistPush(rpnStack, val);
+            rpnStack;
+        }
+    }
+}
+
+rpn2iLIST(rpnArr : [RpnElem]) -> int {
+    emptyList : List<int> = makeList();
+    stack = fold(rpnArr, ref emptyList, rpnElem2stackLIST);
+    switch (^stack : List) {
+        EmptyList(): 666;
+        Cons(h, t) : h;
+    };
+}
+
+
+rpnElem2ArExp(arExpSeq : [ArExp], rpnElem : RpnElem) -> [ArExp] {
+    switch (rpnElem : RpnElem) {
+        RpnOp(op, stringOp): {
+            if (stringOp == "+") {
+                concat(subrange(arExpSeq, 0, length(arExpSeq) - 2), [ArSum(arExpSeq[length(arExpSeq) - 2], arExpSeq[length(arExpSeq) - 1])])
+            }
+            else if (stringOp == "-") {
+                concat(subrange(arExpSeq, 0, length(arExpSeq) - 2), [ArSub(arExpSeq[length(arExpSeq) - 2], arExpSeq[length(arExpSeq) - 1])])
+            }
+            else if (stringOp == "*") {
+                concat(subrange(arExpSeq, 0, length(arExpSeq) - 2), [ArProd(arExpSeq[length(arExpSeq) - 2], arExpSeq[length(arExpSeq) - 1])])
+            }
+            else if (stringOp == "/") {
+                concat(subrange(arExpSeq, 0, length(arExpSeq) - 2), [ArDiv(arExpSeq[length(arExpSeq) - 2], arExpSeq[length(arExpSeq) - 1])])
+            }
+            else {
+                []
+            }
+        }
+        RpnVal(val): {
+            concat(arExpSeq, [ArInt(val)])
+        }
+    }
+}
+
+rpn2ar(rpnSeq : [RpnElem]) -> ArExp {
+    arExpSeq = fold(rpnSeq, [], rpnElem2ArExp);
+    arExpSeq[0];
+}
+
+
+ar2rpn(ar : ArExp, t : Tree) -> [RpnElem] {
+    switch (ar : ArExp) {
+        ArSum(l, r): 
+            concat(concat(ar2rpn(l, t), ar2rpn(r, t)), [RpnOp(\x, y -> x + y, "+")]);
+        ArSub(l, r):
+            concat(concat(ar2rpn(l, t), ar2rpn(r, t)), [RpnOp(\x, y -> x - y, "-")]);
+        ArProd(l, r): 
+            concat(concat(ar2rpn(l, t), ar2rpn(r, t)), [RpnOp(\x, y -> x * y, "*")]);
+        ArDiv(l, r): 
+            concat(concat(ar2rpn(l, t), ar2rpn(r, t)), [RpnOp(\x, y -> x / y, "/")]);
+            
+        ArInt(val): 
+            [RpnVal(val)];
+        ArVar(var): 
+            switch (lookupTree(t, var) : Maybe<int>) {
+                Some(varValue): {
+                    [RpnVal(varValue)]
+                }
+                None(): []; // error while looking for a var in tree
+            }
+
+    }
+}
+
+}
+

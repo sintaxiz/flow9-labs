@@ -1,0 +1,15 @@
+exp = ws sum | ws sub | ws product | ws div | ws integer | ws variable;
+
+sum ="(" exp:l ws "+" exp:r ws ")" ws { ArSum(:l, :r) };
+sub = "(" exp:l ws "-" exp:r ws ")" ws { ArSub(:l, :r)};
+product ="(" exp:l ws "*"  exp:r ws ")" ws {ArProd(:l, :r) };
+div =  "("  exp:l ws "/"  exp:r ws ")" ws { ArDiv(:l, :r)};
+
+integer = digit+$d { ArInt(s2i($d)) };
+digit ='0'-'9'; 
+
+variable = char+$c { ArVar($c) };
+char='a'-'z';   
+
+ws = s*;
+s = " " | "\t" | "\n";

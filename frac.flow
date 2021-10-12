@@ -1,0 +1,56 @@
+import ds/tree;
+import string;
+
+export {
+Frac(denom : Poly, divisor : Poly);
+Poly(poly : Tree<Monom, int>);
+Monom(mon : Tree<string, int>);
+
+prodMonoms(m1 : Monom, m2 : Monom) -> Monom {
+    println(mergeTreeCustom(m1.mon, m2.mon, \key,v1,v2 -> v1 + v2));
+    Monom(mergeTreeCustom(m1.mon, m2.mon, \key,v1,v2 -> v1 + v2));
+}
+
+sumFrac(f1 : Frac, f2 : Frac) -> Frac {
+    Frac(sumPoly(prodPoly(f1.denom, f2.divisor), prodPoly(f1.divisor, f2.denom)), 
+         prodPoly(f1.divisor, f2.divisor));
+}
+
+subFrac(f1 : Frac, f2 : Frac) -> Frac {
+    Frac(subPoly(prodPoly(f1.denom, f2.divisor), prodPoly(f2.denom, f1.divisor)), 
+         prodPoly(f1.divisor, f2.divisor));
+}
+
+prodFrac(f1 : Frac, f2 : Frac) -> Frac {
+    Frac(prodPoly(f1.denom, f2.denom), 
+         prodPoly(f1.divisor, f2.divisor));
+}
+
+divFrac(f1 : Frac, f2 : Frac) -> Frac {
+    Frac(prodPoly(f1.denom, f2.divisor), 
+         prodPoly(f1.divisor, f2.denom));
+}
+
+sumPoly(p1 : Poly, p2 : Poly) -> Poly {
+    Poly(mergeTreeCustom(p1.poly, p2.poly, \key,v1,v2 -> v1 + v2));
+}
+
+minusPoly(p : Poly) -> Poly {
+    Poly(mapTree(p.poly, \const -> -const));
+}
+subPoly(p1 : Poly, p2 : Poly) -> Poly {
+    sumPoly(p1, minusPoly(p2));
+}
+
+prodPoly(p1 : Poly, p2 : Poly) -> Poly {
+    Poly(foldTree(p1.poly, makeTree(), \m1,v1,t1 ->
+                foldTree(p2.poly, t1, \m2,v2,t2 -> {
+                    switch (lookupTree(t2, prodMonoms(m1,m2))) {
+                        Some(var): setTree(t2, prodMonoms(m1, m2), var + v1 * v2);
+                        None(): setTree(t2, prodMonoms(m1, m2), v1 * v2);
+                    }
+                }
+                    )));    
+}
+
+}

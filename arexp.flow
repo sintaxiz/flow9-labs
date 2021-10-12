@@ -1,0 +1,14 @@
+// грамматика в формате линго, которая преобразует строку в эти структуры лежит в файле exp.lingo
+export {
+ArExp ::= ArSum, ArSub, ArProd, ArDiv, 
+             ArInt, ArVar;
+ArSum(l: ArExp, r: ArExp);
+ArSub(l: ArExp, r: ArExp);
+
+ArProd(l: ArExp, r: ArExp);
+ArDiv(l: ArExp, r: ArExp);
+
+ArInt(val : int);
+ArVar(var : string);
+}
+

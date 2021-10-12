@@ -1,0 +1,211 @@
+import ds/tree;
+import maybe;
+import lingo/pegcode/driver;
+import ds/list;
+import rpn;
+import arexp;
+import frac;
+
+s2ar(s : string) -> Maybe<ArExp> {
+    grammaFile = "#include exp.lingo";
+    grammar = compilePegGrammar(grammaFile);
+    result = parsic3(grammar, s, defaultPegActions, ArInt(0));
+    if (result.third == "") {
+        Some(result.first);
+    } else {
+        println("error: " + result.third);
+        None();
+    }
+}
+
+ar2i(ar : ArExp, values : Tree) -> int {
+    switch (ar : ArExp) {
+        ArSum(l, r): 
+            ar2i(l, values) + ar2i(r, values);
+        ArSub(l, r):
+            ar2i(l, values) - ar2i(r, values);
+        ArProd(l, r): 
+            ar2i(l, values) * ar2i(r, values);
+        ArDiv(l, r):
+            ar2i(l, values) / ar2i(r, values);
+
+        ArInt(val): 
+            val;
+        ArVar(var): {
+            switch (lookupTree(values, var) : Maybe<int>) {
+                Some(variable): {
+                    variable;
+                }
+                None(): {
+                    -1; // error while looking for a var in tree
+                }
+            }
+        }
+    }
+}
+
+ar2s(ar : ArExp) -> string {
+    switch (ar : ArExp) {
+        ArSum(l, r):  "(" + ar2s(l) + " + " + ar2s(r) + ")";
+        ArSub(l, r): "("  + ar2s(l) + " - " + ar2s(r) + ")";
+        ArProd(l, r): "("  + ar2s(l) + " * " + ar2s(r) + ")";
+        ArDiv(l, r): "("  + ar2s(l) + " / " + ar2s(r) + ")";
+
+        ArInt(val): i2s(val);
+        ArVar(var): var;
+    }
+}
+
+differAr(ar : ArExp, v : string) -> ArExp {
+    switch (ar : ArExp) {
+        // (l + r)' = l' + r'
+        ArSum(l, r): ArSum(differAr(l, v), differAr(r, v));
+        // (l - r)' = l' - r'
+        ArSub(l, r): ArSub(differAr(l, v), differAr(r, v));
+        // (l * r)' = l' * r + l * r'
+        ArProd(l, r): ArSum(ArProd(differAr(l, v), r), ArProd(r, differAr(r, v)));
+        // (l / r)' = (l' * r - l * r') / r * r'
+        ArDiv(l, r): ArDiv(ArSub(ArProd(differAr(l, v), r), ArProd(l, differAr(r, v))) ,  ArProd(r, r));
+
+        ArInt(val): ArInt(0);
+        ArVar(var): 
+            if (v == var) {
+                ArInt(1)
+            } else {
+                ArInt(0)
+            }
+    }
+}
+
+simplifyAr(ar : ArExp) -> Maybe<ArExp> {
+     switch (ar : ArExp) {
+        ArSum(l, r):  {
+            simpleL = simplifyAr(l);
+            simpleR = simplifyAr(r);
+            switch (simpleL : Maybe<ArExp>) {
+                Some(left):
+                    switch (simpleR : Maybe<ArExp>) {
+                        Some(right): Some(ArSum(left, right));
+                        None(): simpleL; 
+                    }
+                
+                None(): {
+                    switch (simpleR : Maybe<ArExp>) {
+                        Some(right): simpleR;
+                        None(): None(); 
+                    }
+                }
+            }
+        }
+
+        ArSub(l, r):  {
+            simpleL = simplifyAr(l);
+            simpleR = simplifyAr(r);
+            switch (simpleL : Maybe<ArExp>) {
+                Some(left):
+                    switch (simpleR : Maybe<ArExp>) {
+                        Some(right): Some(ArSub(left, right));
+                        None(): simpleL; 
+                    }
+                
+                None(): {
+                    switch (simpleR : Maybe<ArExp>) {
+                        Some(right): simpleR;
+                        None(): None(); 
+                    }
+                }
+            }
+        }
+        
+
+        ArProd(l, r):  {
+            simpleL = simplifyAr(l);
+            simpleR = simplifyAr(r);
+            switch (simpleL : Maybe<ArExp>) {
+                Some(left):
+                    switch (simpleR : Maybe<ArExp>) {
+                        Some(right): Some(ArProd(left, right));
+                        None(): None(); 
+                    }
+                None(): None();
+            }
+        }   
+
+        ArDiv(l, r):  {
+            simpleL = simplifyAr(l);
+            simpleR = simplifyAr(r);
+            switch (simpleL : Maybe<ArExp>) {
+                Some(left):
+                    switch (simpleR : Maybe<ArExp>) {
+                        Some(right): Some(ArDiv(left, right));
+                        None(): None(); 
+                    }
+                None(): None();
+            }
+        }
+            
+        ArInt(val):
+            if (val == 0) {
+                None();
+            } else {
+                Some(ar)
+            }
+        ArVar(var): Some(ar);
+    }
+}
+
+mon2s(m : Monom) {
+    foldTree(m.mon, "", \var, pow, str -> var + "^" + i2s(pow));
+}
+
+poly2s(p : Poly) -> string {
+    strResult = foldTree(p.poly, "", \mon,const, str -> str + i2s(const) + mon2s(mon) + " + ");
+    if (strResult != "") {
+        strRemove(strResult, strlen(strResult) - 3, 3);
+    } else {
+        strResult;
+    }
+
+}
+
+frac2s(f : Frac) -> string {
+    poly2s(f.denom) + "\n----------------\n" + poly2s(f.divisor);
+}
+
+ar2frac(ar : ArExp) -> Frac {
+    switch (ar : ArExp) {
+        ArSum(l, r): {
+            sumFrac(ar2frac(l), ar2frac(r));
+        }
+        ArSub(l, r): {
+            subFrac(ar2frac(l), ar2frac(r));
+        }
+        ArProd(l, r): {
+            prodFrac(ar2frac(l), ar2frac(r));
+        }
+        ArDiv(l, r): {
+            divFrac(ar2frac(l), ar2frac(r));
+        }
+        ArVar(var): {
+            Frac(Poly(setTree(makeTree(), Monom(makeTree1(var, 1)), 1)),
+                Poly(setTree(makeTree(), Monom(makeTree()), 1)));
+        }
+        ArInt(val): {
+           Frac(Poly(setTree(makeTree(), Monom(makeTree()), val)),
+                Poly(setTree(makeTree(), Monom(makeTree()), 1)));
+        }
+    }
+}
+
+testExpr : string = "((x + 1) + ((15 - 5) / y))";
+main() {
+    tree = s2ar(testExpr);
+    switch (tree : Maybe<ArExp>) {
+        Some(t): {
+            println(ar2s(t));
+            println(frac2s(ar2frac(t)));
+        }
+        None(): println("no tree...");
+    }
+
+}
