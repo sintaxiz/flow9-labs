@@ -7,7 +7,6 @@ Poly(poly : Tree<Monom, int>);
 Monom(mon : Tree<string, int>);
 
 prodMonoms(m1 : Monom, m2 : Monom) -> Monom {
-    println(mergeTreeCustom(m1.mon, m2.mon, \key,v1,v2 -> v1 + v2));
     Monom(mergeTreeCustom(m1.mon, m2.mon, \key,v1,v2 -> v1 + v2));
 }
 

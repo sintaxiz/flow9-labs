@@ -155,7 +155,8 @@ simplifyAr(ar : ArExp) -> Maybe<ArExp> {
 }
 
 mon2s(m : Monom) {
-    foldTree(m.mon, "", \var, pow, str -> var + "^" + i2s(pow));
+    println(m.mon);
+    foldTree(m.mon, "", \var, pow, str -> str + var + "^" + i2s(pow));
 }
 
 poly2s(p : Poly) -> string {
@@ -197,7 +198,7 @@ ar2frac(ar : ArExp) -> Frac {
     }
 }
 
-testExpr : string = "((x + 1) + ((15 - 5) / y))";
+testExpr : string = "(x * y)";
 main() {
     tree = s2ar(testExpr);
     switch (tree : Maybe<ArExp>) {
