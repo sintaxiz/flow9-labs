@@ -1,4 +1,5 @@
 import ds/tree;
+import math/math;
 import maybe;
 import lingo/pegcode/driver;
 import ds/list;
@@ -9,11 +10,11 @@ import frac;
 s2ar(s : string) -> Maybe<ArExp> {
     grammaFile = "#include exp.lingo";
     grammar = compilePegGrammar(grammaFile);
-    result = parsic3(grammar, s, defaultPegActions, ArInt(0));
-    if (result.third == "") {
-        Some(result.first);
+    coeffsult = parsic3(grammar, s, defaultPegActions, ArInt(0));
+    if (coeffsult.third == "") {
+        Some(coeffsult.first);
     } else {
-        println("error: " + result.third);
+        println("error: " + coeffsult.third);
         None();
     }
 }
@@ -155,16 +156,15 @@ simplifyAr(ar : ArExp) -> Maybe<ArExp> {
 }
 
 mon2s(m : Monom) {
-    println(m.mon);
     foldTree(m.mon, "", \var, pow, str -> str + var + "^" + i2s(pow));
 }
 
 poly2s(p : Poly) -> string {
-    strResult = foldTree(p.poly, "", \mon,const, str -> str + i2s(const) + mon2s(mon) + " + ");
-    if (strResult != "") {
-        strRemove(strResult, strlen(strResult) - 3, 3);
+    strcoeffsult = foldTree(p.poly, "", \mon,const, str -> str + i2s(const) + mon2s(mon) + " + ");
+    if (strcoeffsult != "") {
+        strRemove(strcoeffsult, strlen(strcoeffsult) - 3, 3);
     } else {
-        strResult;
+        strcoeffsult;
     }
 
 }
@@ -198,15 +198,85 @@ ar2frac(ar : ArExp) -> Frac {
     }
 }
 
-testExpr : string = "(x * y)";
-main() {
-    tree = s2ar(testExpr);
-    switch (tree : Maybe<ArExp>) {
-        Some(t): {
-            println(ar2s(t));
-            println(frac2s(ar2frac(t)));
+solvePoly(p : Poly) -> [double] {
+    abc : [double] = foldTree(p.poly, [0.0,0.0,0.0], \monom, const, coeffs -> {
+            switch(monom.mon) {
+                TreeNode(k, v, l, r, d):  {
+                    if (v == 1) {
+                        [coeffs[0], i2d(const), coeffs[2]];
+                    } else if (v == 2) {
+                        [i2d(const), coeffs[1], coeffs[2]];
+                    } else {
+                        [coeffs[0], coeffs[1], coeffs[2]];
+                    }
+                }
+                TreeEmpty() : [coeffs[0], coeffs[1], i2d(const)];
+            };
         }
-        None(): println("no tree...");
+        );
+    D = abc[1]*abc[1] - 4.0 * abc[0] * abc[2];
+    if (D < 0.0) {
+        println("no real roots");
+        [0.0, 0.0];
+    } else {
+        [(-abc[1] + sqrt(D)) / (2.0 * abc[0]), (-abc[1] - sqrt(D)) / (2.0 * abc[0])];
     }
+}
+
+solveEquation(equation : string) -> [double] {
+    eqIdx = strIndexOf(equation, "=");
+    if (eqIdx != -1) {
+        leftStr = substring(equation, 0, eqIdx);
+        rightStr = substring(equation, eqIdx + 1, strlen(equation) - strlen(leftStr) - 1);
+        leftTree = s2ar(leftStr);
+        rightTree = s2ar(rightStr);
+
+        switch (leftTree : Maybe<ArExp>) {
+            Some(l): {
+            switch (rightTree : Maybe<ArExp>) {
+                    Some(r):
+                    {
+                        frac = ar2frac(ArSub(l, r));
+                        solvePoly(frac.denom);
+                    }
+                    None(): 
+                    {
+                        println("no tree...");
+                        [0.0, 0.0];
+                    }
+                }
+            }
+            None(): 
+            {
+                println("no tree...");
+                [0.0, 0.0];
+            }
+        }
+    } else {
+        println("not equation!");
+        [0.0, 0.0];
+    }
+
+}
+
+testExpr : string = "((x*x) + (2*x)) = 5";
+
+equationA : string = "( (((x - 1) * (x - 1)) / 8) + ( 8 / ((x-1)*(x-1)) ) ) = ( ( (7 *  ( (x-1) / 4 )) - (2 / (x-1)) ) - 1 )";
+equationB : string = "";
+equationC : string = "";
+equationD : string = "";
+
+main() {
+    println(solveEquation(testExpr));
+    println(solveEquation(equationA));
+    
+    // tree = s2ar(testExpr);
+    // switch (tree : Maybe<ArExp>) {
+    //     Some(t): {
+    //         println(ar2s(t));
+    //         println(frac2s(ar2frac(t)));
+    //     }
+    //     None(): println("no tree...");
+    // }
 
 }
