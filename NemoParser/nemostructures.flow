@@ -1,0 +1,27 @@
+export {
+    NemoProg(desc: [Description], body : Body);
+    Description(var : Var, type : Type);
+    
+    Type ::= IntType, ArrIntType;
+    IntType();
+    ArrIntType();
+
+    Body ::= Assignment, Test, Sequence, Choice, Iteration;
+
+    Assignment(right : Var, left : Expression);
+    Test(exp: Predicate);
+    Choice(l : Body, r : Body);
+    Iteration(body : Body);
+    Sequence(l : Body, r : Body);
+
+    Expression ::= Operand, ArExp, FuncExp;
+    Operand ::= Int, Var;
+    Int(val : int);
+    Var(name : string);
+    ArExp(l : Operand, r : Operand, operation : string);
+    FuncExp ::= AppFunc, UpdFunc;
+    AppFunc(arr : Expression, index: Expression);
+    UpdFunc(arr : Expression, index: Expression, value: Expression);
+
+    Predicate(l : Operand, r : Operand, relationSign : string);
+}

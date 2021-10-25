@@ -3,9 +3,7 @@ import math/math;
 import maybe;
 import lingo/pegcode/driver;
 import ds/list;
-import rpn;
-import arexp;
-import frac;
+import string;
 
 s2ar(s : string) -> Maybe<ArExp> {
     grammaFile = "#include exp.lingo";
@@ -170,7 +168,7 @@ poly2s(p : Poly) -> string {
 }
 
 frac2s(f : Frac) -> string {
-    poly2s(f.denom) + "\n----------------\n" + poly2s(f.divisor);
+    poly2s(f.denom) + poly2s(f.denom) + poly2s(f.divisor);
 }
 
 ar2frac(ar : ArExp) -> Frac {
@@ -261,22 +259,22 @@ solveEquation(equation : string) -> [double] {
 
 testExpr : string = "((x*x) + (2*x)) = 5";
 
-equationA : string = "( (((x - 1) * (x - 1)) / 8) + ( 8 / ((x-1)*(x-1)) ) ) = ( ( (7 *  ( (x-1) / 4 )) - (2 / (x-1)) ) - 1 )";
+equationA : string = "(( (((x - 1) * (x - 1)) / 8) + ( 8 / ((x-1)*(x-1)) ) ) -( ( (7 *  ( (x-1) / 4 )) - (2 / (x-1)) ) - 1 ))";
 equationB : string = "";
 equationC : string = "";
 equationD : string = "";
 
 main() {
-    println(solveEquation(testExpr));
-    println(solveEquation(equationA));
+    //println(solveEquation(testExpr));
+    //println(solveEquation(equationA));
     
-    // tree = s2ar(testExpr);
-    // switch (tree : Maybe<ArExp>) {
-    //     Some(t): {
-    //         println(ar2s(t));
-    //         println(frac2s(ar2frac(t)));
-    //     }
-    //     None(): println("no tree...");
-    // }
+    tree = s2ar(equationA);
+    switch (tree : Maybe<ArExp>) {
+        Some(t): {
+            println(ar2s(t));
+            println(frac2s(ar2frac(t)));
+        }
+        None(): println("no tree...");
+    }
 
 }

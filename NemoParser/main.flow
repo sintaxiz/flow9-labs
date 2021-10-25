@@ -1,0 +1,47 @@
+import maybe;
+import lingo/pegcode/driver;
+import nemostructures;
+import string;
+
+
+s2nemo(s : string) {
+    grammaFile = "#include nemo-grammar.lingo";
+    grammar = compilePegGrammar(grammaFile);
+    coeffsult = parsic3(grammar, s, defaultPegActions, Int(0));
+    if (coeffsult.third == "") {
+        Some(coeffsult.first);
+    } else {
+        println("error: " + coeffsult.third);
+        None();
+    }
+}
+
+emptyDescTest : string = "{} x := 4"
+assignmentTest : string = "{var x : int; } x := 5 ";
+assignmentArExpTest : string = "{} x := ((4 + 5) * 2)"
+choiceTest : string = "{var x : int; } (x := 5 U x := 10)";
+iterationTest : string = "{var x : int; } (x := 5)* ";
+sequenceTest : string = "{var x : int; } (x := 5; x := 2)"
+testTest : string = "{var x : int; } (x<5)?";
+
+appTest : string = "{var x : [int]; } x := APP(x,1)"
+updTest : string = "{var x : [int]; } x := UPD(x,1, 1)"
+
+tests : [string] = [emptyDescTest, assignmentTest, assignmentArExpTest, choiceTest, iterationTest, sequenceTest, testTest,
+                    appTest, updTest];
+
+testParse(nemoProg : string) {
+  switch (s2nemo(nemoProg)) {
+        Some(res): {
+            println(res);
+        }
+        None(): {
+            println("cannot parse program...");
+        }
+    }
+}
+
+main() {
+    map(tests, testParse);
+  
+}

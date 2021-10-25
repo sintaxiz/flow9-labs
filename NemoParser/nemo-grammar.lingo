@@ -1,0 +1,33 @@
+program     = "{" description*:d "}" body:b  {NemoProg(:d, :b)};
+description = ws "var " variable:v ":" type:t ";" ws {Description(:v, :t)};
+type        = int | arr;
+int         = ws"int"ws {IntType()};
+arr         = ws "["ws type ws"]"ws {ArrIntType()};
+body        = assignment | choice | iteration | sequence | test;   
+
+assignment  = variable:l ":=" expression:r {Assignment(:l, :r)};
+choice      = ws "(" body:l "U" body:r ")" {Choice(:l, :r)};
+iteration   = ws "(" body:b ")*" ws {Iteration(:b)};
+sequence    = ws "(" body:l ws ";" ws body:r ws ")" ws{Sequence(:l, :r)};
+test        = ws "(" relation:r ")?"  ws {Test(:r)};
+
+expression  = operand | arexp | func;
+operand     = integer | variable;
+arexp       =  ws "(" operand:l ws sign:op ws operand:r ")" ws {ArExp(:l, :r, :op)};
+sign        = "+" | "-" | "*" | "/";
+
+func        = appfunc | uppfunc;
+appfunc     = ws "APP"ws"("operand:arr "," operand:idx ")" {AppFunc(:arr, :idx)};
+uppfunc     = ws "UPD"ws"("operand:arr "," operand:idx "," operand:val ")" {UpdFunc(:arr, :idx, :val)};
+
+integer     = ws digit+$d ws {Int(s2i($d))};
+digit       ='0'-'9'; 
+
+variable    = ws char+$c ws {Var($c)};
+char        ='a'-'z';   
+
+relation = "(" operand:l relsign$s operand:r ")" {Predicate(:l, :r, $s)};
+relsign = "<" | '>' | '>=' | '<=';
+
+ws = s*;
+s = " " | "\t" | "\n";
