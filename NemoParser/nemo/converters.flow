@@ -1,0 +1,61 @@
+import nemo/structures;
+import maybe;
+import lingo/pegcode/driver;
+import string;
+
+export {
+s2nemo(s : string) -> Maybe<NemoProg> {
+    grammaFile = "#include nemo-grammar.lingo";
+    grammar = compilePegGrammar(grammaFile);
+    coeffsult = parsic3(grammar, s, defaultPegActions, NemoProg([Description(Var(""), IntType())], 
+                                                                Test(Predicate(Int(0), Int(0), ">"))));
+    if (coeffsult.third == "") {
+        Some(coeffsult.first);
+    } else {
+        println("error: " + coeffsult.third);
+        None();
+    }
+}
+
+exp2s(exp : Expression) -> string {
+    switch(exp) {
+        Var(v): v;
+        Int(v): i2s(v);
+
+        AppFunc(a, i) : "APP(" + exp2s(a) + ", " + exp2s(i) + ")";
+        UpdFunc(a, i, v) : "UPD(" + exp2s(a) + ", " + exp2s(i) + ", " + exp2s(v) + ")";    
+
+        ArExp(l, r, s): "(" + exp2s(l) + " " + s + " " + exp2s(r) + ")";
+        Predicate(l, r, s): "(" + exp2s(l) + " " + s + " " + exp2s(r) + ")";
+    }
+}
+
+type2s(type : Type) -> string {
+    switch (type : Type) {
+        ArrIntType(): {
+            "arrint"
+        }
+        IntType(): {
+            "int"
+        }
+    }
+}
+
+desc2s(desc : [Description]) -> string {
+    fold(desc, "" ,\s, d -> s + d.var.name + ": " + type2s(d.type) + "; ");
+}
+
+body2s(body : Body) -> string {
+    switch (body) {
+        Assignment(l, r): exp2s(l) + " := " + exp2s(r);
+        Test(e): "(" + exp2s(e) + ")?";
+        Choice(l, r): "(" + body2s(l) + " U " + body2s(r) + ")";
+        Iteration(b): "(" + body2s(b) + ")";
+        Sequence(l, r): "(" + body2s(l) + " ; " + body2s(r) + ")";
+    }
+}
+
+nemo2s(prog : NemoProg) -> string {
+   "DESC: " + desc2s(prog.desc) + "\nBODY: " + body2s(prog.body);
+}
+}

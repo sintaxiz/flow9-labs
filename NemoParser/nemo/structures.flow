@@ -8,20 +8,19 @@ export {
 
     Body ::= Assignment, Test, Sequence, Choice, Iteration;
 
-    Assignment(right : Var, left : Expression);
+    Assignment(l : Var, r : Expression);
     Test(exp: Predicate);
     Choice(l : Body, r : Body);
     Iteration(body : Body);
     Sequence(l : Body, r : Body);
 
-    Expression ::= Operand, ArExp, FuncExp;
+    Expression ::= Operand, ArExp, FuncExp, Predicate;
     Operand ::= Int, Var;
     Int(val : int);
     Var(name : string);
-    ArExp(l : Operand, r : Operand, operation : string);
+    ArExp(l : Expression, r : Expression, operation : string);
     FuncExp ::= AppFunc, UpdFunc;
     AppFunc(arr : Expression, index: Expression);
     UpdFunc(arr : Expression, index: Expression, value: Expression);
-
-    Predicate(l : Operand, r : Operand, relationSign : string);
+    Predicate(l: Expression, r : Expression, relSign : string);
 }
