@@ -2,18 +2,21 @@ import maybe;
 import nemo/converters;
 import string;
 
-emptyDescTest : string = "{} x := 4"
-assignmentTest : string = "{var x : int; } x := 5 ";
-assignmentArExpTest : string = "{} x := ((4 + 5) * 2)"
-choiceTest : string = "{var x : int; } (x := 5 U x := 10)";
-iterationTest : string = "{var x : int; } (x := 5)* ";
-sequenceTest : string = "{var x : int; } (x := 5; x := 2)"
-testTest : string = "{var x : int; } ((x > y))?";
+emptyDescTest       = "{} x := 4";
+multipleDescTest    = "{var x : int; var y : [int]; } x := 4";
+assignmentTest      = "{var x : int; } x := 5 ";
+assignmentArExpTest = "{} x := ((4 + 5) * 2)"
+choiceTest          = "{var x : int; } (x := 5 U x := 10)";
+iterationTest       = "{var x : int; } (x := 5)* ";
+sequenceTest        = "{var x : int; } (x := 5; x := 2)"
+testTest            = "{var x : int; } ((x > y))?";
 
-appTest : string = "{var x : [int]; } x := APP(x,1)"
-updTest : string = "{var x : [int]; } x := UPD(x,1, 1)"
+appTest             = "{var x : [int]; } x := APP(x,1)"
+updTest             = "{var x : [int]; } x := UPD(x,1, 1)"
 
-testsP : [Pair] = [ Pair(emptyDescTest, "emptyDescTest"),
+tests               = [ 
+                    Pair(emptyDescTest, "emptyDescTest"),
+                    Pair(multipleDescTest, "multipleDescTest"),
                     Pair(assignmentTest, "emptyDescTest"),
                     Pair(assignmentArExpTest, "emptyDescTest"),
                     Pair(choiceTest, "emptyDescTest"),
@@ -21,8 +24,8 @@ testsP : [Pair] = [ Pair(emptyDescTest, "emptyDescTest"),
                     Pair(sequenceTest, "emptyDescTest"),
                     Pair(testTest, "emptyDescTest"),
                     Pair(appTest, "emptyDescTest"),
-                    Pair(updTest, "emptyDescTest")
-                  ];
+                    Pair(updTest, "emptyDescTest") 
+                    ];
 
 runTest(nemoProg : string) {
   switch (s2nemo(nemoProg)) {
@@ -37,7 +40,7 @@ runTest(nemoProg : string) {
 }
 
 main() {
-    map(testsP, \t -> {
+    map(tests, \t -> {
         switch (t : Pair) {
             Pair(test, testName): {
                 println("test: " + testName);
