@@ -1,0 +1,17 @@
+import vm/structures;
+import ds/tree;
+
+export {    
+
+executeProg(prog : NemoVmProg) {
+    prog.descriptions
+}
+}
+
+desc2tree() -> Tree {
+    makeTree();
+}
+
+
+executeOperator() {
+}

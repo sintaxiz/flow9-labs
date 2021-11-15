@@ -1,11 +1,8 @@
+import common/structures;
+
 export {
     NemoProg(desc: [Description], body : Body);
-    Description(var : Var, type : Type);
     
-    Type ::= IntType, ArrIntType;
-    IntType();
-    ArrIntType();
-
     Body ::= Assignment, Test, Sequence, Choice, Iteration;
 
     Assignment(l : Var, r : Expression);
@@ -13,14 +10,4 @@ export {
     Choice(l : Body, r : Body);
     Iteration(body : Body);
     Sequence(l : Body, r : Body);
-
-    Expression ::= Operand, ArExp, FuncExp, Predicate;
-    Operand ::= Int, Var;
-    Int(val : int);
-    Var(name : string);
-    ArExp(l : Expression, r : Expression, operation : string);
-    FuncExp ::= AppFunc, UpdFunc;
-    AppFunc(arr : Expression, index: Expression);
-    UpdFunc(arr : Expression, index: Expression, value: Expression);
-    Predicate(l: Expression, r : Expression, relSign : string);
 }
