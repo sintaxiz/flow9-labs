@@ -1,10 +1,21 @@
 export {
     Description(var : Var, type : Type);
 
-    Type ::= IntType, ArrIntType;
+    Type ::= IntType, ArrIntType, BoolType;
     IntType();
     ArrIntType();
+    BoolType();
 
+    NemoVar ::= NemoInt, NemoBool, NemoArr;
+
+    NemoInt(val : int);
+
+    NemoBool(val : Bool); 
+    Bool ::= True, False;
+    True();
+    False();
+
+    NemoArr(arr : [int]);
 
     Expression ::= Operand, ArExp, FuncExp, Predicate;
 

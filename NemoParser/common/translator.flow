@@ -1,0 +1,30 @@
+import nemo/structures;
+import vm/structures;
+
+export {
+    nemo2nemovm(nemoProg : NemoProg) -> NemoVmProg;
+}
+
+nemo2nemovm(nemoProg : NemoProg) -> NemoVmProg {
+    NemoVmProg(nemoProg.desc, nemoBody2vmOperators(nemoProg.body));
+}
+
+nemoBody2vmOperators(body : Body) -> [VmOperator] {
+    switch (body) {
+        Assignment(l, r): {
+            
+        }
+        Test(pred): {
+
+        }
+        Choice(l, r): {
+
+        }
+        Iteration(b): {
+
+        }
+        Sequence(l, r): {
+
+        }
+    }
+}

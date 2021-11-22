@@ -1,0 +1,6 @@
+import vm/machine;
+
+main () {
+    nvmp = NemoVmProg([], []);
+    executeProg(nvmp);
+}
