@@ -21,7 +21,6 @@ executeProg(prog : NemoVmProg) {
     }
 }
 
-
 executeOperators(start : Operator, ops : Tree<int, Operator>, values : Tree<string, NemoVar>) {
     state = executeOperator(start, values);
     if (length(state.labels) != 0) {
@@ -31,7 +30,7 @@ executeOperators(start : Operator, ops : Tree<int, Operator>, values : Tree<stri
                 None(): println("RUNTIME ERROR: No such label " + i2s(l));
             }
         });
-    } else {[]}
+    } else {[]};
     println("state after operator: " + toString(state));
 }
 
@@ -58,9 +57,8 @@ executeOperator(vmOp : Operator, values : Tree<string, NemoVar>) -> State {
     }
 }
 
-
-desctype2nemovar(type : Type) -> NemoVar {
-    switch (type) {
+desc2nemovar(desc : Description) -> NemoVar {
+    switch (desc.type) {
         IntType(): NemoInt(0);
         ArrIntType(): NemoArr([]);
         BoolType(): NemoBool(False());
@@ -69,15 +67,13 @@ desctype2nemovar(type : Type) -> NemoVar {
 
 descriptions2tree(descs : [Description]) -> Tree<string, NemoVar> {
     fold(descs, makeTree(), \tree, desc ->
-        setTree(tree, desc.var.name, desctype2nemovar(desc.type)));
+        setTree(tree, desc.var.name, desc2nemovar(desc)));
 }
 
 vmOperators2tree(ops : [VmOperator]) -> Tree<int, Operator> {
      fold(ops, makeTree(), \tree, op ->
         setTree(tree, op.label, op.op));
 }
-
-
 
 evaluateArExp(l : Expression, r : Expression, op : string, values : Tree<string, NemoVar>) -> NemoInt {
     lExpr = evaluateExpr(l, values);
@@ -98,38 +94,95 @@ evaluateArExp(l : Expression, r : Expression, op : string, values : Tree<string,
                     else if (op == "/") {
                         NemoInt(lvar / rvar);
                     } else {
-                        NemoInt(0); // TODO: unknown op
+                        NemoInt(0); // unknown op
                     }
                 }
-                NemoBool(b): NemoInt(0); // TODO: error
-                NemoVar(v): NemoInt(0); // TODO: error
+                NemoBool(b): NemoInt(0); // error
+                NemoVar(v): NemoInt(0); // error
             }
         }
-        NemoBool(b): NemoInt(0); // TODO: error
-        NemoVar(v): NemoInt(0); // TODO: error
+        NemoBool(b): NemoInt(0); // error
+        NemoVar(v): NemoInt(0); // error
     }
 }
 
-evaluateOper(op : Operand, values : Tree<string, NemoVar>) -> NemoInt {
+evaluateOper(op : Operand, values : Tree<string, NemoVar>) -> NemoVar {
     switch (op) {
         Int(val): NemoInt(val);
-        Var(v): NemoInt(0); // TODO: lookup in tree
+        Var(v): 
+        switch(lookupTree(values, v)) {
+                Some(nemovar): nemovar;
+                None(): NemoInt(0); // error
+        };
     }
 }
 
 evaluateFuncExp(fexp : FuncExp, values : Tree<string, NemoVar>) -> NemoVar {
     switch (fexp) {
         AppFunc(arr, i): {
-            NemoInt(0);
+            switch(lookupTree(values, arr.name)) {
+                Some(nemovar): {
+                    switch (nemovar) {
+                        NemoArr(array): array[i.val];
+                        NemoBool(b): NemoInt(0); // error
+                        NemoInt(intval): NemoInt(0); //error
+                    }
+                }
+                None(): NemoInt(0); // error
+            }
         }
         UpdFunc(arr, i, v): {
-            NemoInt(0);
+            switch(lookupTree(values, arr.name)) {
+                Some(nemovar): {
+                    switch (nemovar) {
+                        NemoArr(array): NemoArr(replace(array, i.val, evaluateExpr(v, values)));
+                        NemoBool(b): NemoInt(0); // error
+                        NemoInt(intval): NemoInt(0); //error
+                    }
+                }
+                None(): NemoInt(0); // error
+            }
         }
     }
 }
 
 evaluatePredicate(cond : Predicate, values : Tree<string, NemoVar>) -> NemoBool {
-    NemoBool(True());
+    lExpr = evaluateExpr(cond.l, values);
+    rExpr = evaluateExpr(cond.r, values);
+    relSign = cond.relSign;
+    switch (lExpr) {
+        NemoInt(lvar): {
+            switch (rExpr) {
+                NemoInt(rvar): {
+                    if (relSign == "==") {
+                        if (lvar == rvar)   NemoBool(True())
+                        else                NemoBool(False());
+                    }
+                    else if (relSign == ">") {
+                        if (lvar > rvar)   NemoBool(True())
+                        else                NemoBool(False());
+                    }
+                    else if (relSign == "<") {
+                        if (lvar < rvar)   NemoBool(True())
+                        else                NemoBool(False());
+                    }
+                    else if (relSign == ">=") {
+                        if (lvar >= rvar)   NemoBool(True())
+                        else                NemoBool(False());
+                    }
+                    else if (relSign == "<=") {
+                        if (lvar <= rvar)   NemoBool(True())
+                        else                NemoBool(False());
+                    }
+                    else NemoBool(False()); // error
+                }
+                NemoBool(b): NemoBool(False()); // error
+                NemoVar(v): NemoBool(False()); // error
+            }
+        }
+        NemoBool(b): NemoBool(False()); // error
+        NemoVar(v): NemoBool(False()); // error
+    }
 }
 
 evaluateExpr(exp : Expression, varValues : Tree<string, NemoVar>) -> NemoVar {
@@ -139,8 +192,4 @@ evaluateExpr(exp : Expression, varValues : Tree<string, NemoVar>) -> NemoVar {
         FuncExp(): evaluateFuncExp(exp, varValues);
         Predicate(l, r, sign): evaluatePredicate(exp, varValues);
     }
-}
-
-desc2tree() -> Tree {
-    makeTree();
 }
