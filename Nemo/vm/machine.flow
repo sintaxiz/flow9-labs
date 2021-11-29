@@ -159,11 +159,11 @@ evaluatePredicate(cond : Predicate, values : Tree<string, NemoVar>) -> NemoBool 
                         else                NemoBool(False());
                     }
                     else if (relSign == ">") {
-                        if (lvar > rvar)   NemoBool(True())
+                        if (lvar > rvar)    NemoBool(True())
                         else                NemoBool(False());
                     }
                     else if (relSign == "<") {
-                        if (lvar < rvar)   NemoBool(True())
+                        if (lvar < rvar)    NemoBool(True())
                         else                NemoBool(False());
                     }
                     else if (relSign == ">=") {
