@@ -1,5 +1,6 @@
 import nemo/structures;
 import vm/structures;
+import ds/array;
 
 export {
     nemo2nemovm(nemoProg : NemoProg) -> NemoVmProg;
@@ -11,20 +12,95 @@ nemo2nemovm(nemoProg : NemoProg) -> NemoVmProg {
 
 nemoBody2vmOperators(body : Body) -> [VmOperator] {
     switch (body) {
-        Assignment(l, r): {
-            
-        }
-        Test(pred): {
-
-        }
-        Choice(l, r): {
-
-        }
-        Iteration(b): {
-
-        }
-        Sequence(l, r): {
-
-        }
+        Assignment(l, r): [VmOperator(0, AssignmentOp(l, r, [1]))]
+        Test(pred): [VmOperator(0, ConditionOp(pred, [1], []))]
+        Sequence(l, r): seq2VmOperators(l, r)
+        Choice(l, r): choice2VmOperators(l, r)
+        Iteration(it): iter2VmOperators(it)
     }
+}
+
+iter2VmOperators(itBody : Body) -> [VmOperator] {
+    itOps = shiftOpsLabels(nemoBody2vmOperators(itBody), 1);
+    end = maxOpsLabel(itOps);
+    concat (replaceOpsLabels(itOps, end, 0),
+        [VmOperator(0, ConditionOp(Predicate(Int(1), Int(1), "=="), [1, end], []))]
+    )
+}
+
+choice2VmOperators(l : Body, r : Body) -> [VmOperator] {
+    lOps = shiftOpsLabels(nemoBody2vmOperators(l), 1);
+    lEnd = maxOpsLabel(lOps);
+    rOps = shiftOpsLabels(nemoBody2vmOperators(r), lEnd);
+    rEnd = maxOpsLabel(rOps);
+    concat (
+        concat(
+        rOps,
+        replaceOpsLabels(lOps, lEnd, rEnd)
+    ), [VmOperator(0, ConditionOp(Predicate(Int(1), Int(1), "=="), [1, lEnd], []))]
+    )
+}
+
+seq2VmOperators(l : Body, r : Body) -> [VmOperator] {
+    lOps = nemoBody2vmOperators(l);
+    end = maxOpsLabel(lOps);
+    rOps = shiftOpsLabels(nemoBody2vmOperators(r), end);
+    concat(lOps, rOps);
+}
+
+shiftOpsLabels(ops : [VmOperator], shift : int) {
+    fold(ops, [], \shiftOps, vmOp -> concat (shiftOps,
+                                            [VmOperator(vmOp.label + shift, shiftOpLabels(vmOp.op, shift))]))
+}
+
+shiftOpLabels(op : Operator, shift : int) -> Operator {
+    switch(op) {
+        AssignmentOp(var, exp, labels): 
+        AssignmentOp(var, exp, shiftLabels(labels, shift))
+
+        ConditionOp(cond, labelsThen, labelsElse): 
+        ConditionOp (cond, shiftLabels(labelsThen, shift), shiftLabels(labelsElse, shift))
+    }
+}
+
+shiftLabels(labels : [int], shift : int) -> [int] {
+    map(labels, \l -> l + shift)
+}
+
+maxOpsLabel(vmOps : [VmOperator]) -> int {
+    fold(vmOps, 0, \acc, vmOp -> max(acc, maxOpLabel(vmOp.op)));
+}
+
+maxOpLabel(op : Operator) -> int {
+    switch (op) {
+        AssignmentOp(var, exp, labels): maxLabel(labels)
+        ConditionOp(cond, labelsThen, labelsElse): maxLabel(concat(labelsThen, labelsElse))
+    }
+}
+
+maxLabel(labels : [int]) {
+    fold(labels, 0, \acc, l -> max(acc, l))
+}
+
+replaceOpsLabels(ops : [VmOperator], oldVal, newVal) -> [VmOperator] {
+     fold(ops, [], \replacedOps, vmOp -> concat (replacedOps,
+                                            [VmOperator(replaceLabel(vmOp.label, oldVal, newVal), replaceOpLabel(vmOp.op, oldVal, newVal))]))
+}
+
+replaceOpLabel(op : Operator, oldVal, newVal) -> Operator {
+    switch(op) {
+        AssignmentOp(var, exp, labels): 
+        AssignmentOp(var, exp, replaceLabels(labels, oldVal, newVal))
+
+        ConditionOp(cond, labelsThen, labelsElse): 
+        ConditionOp (cond, replaceLabels(labelsThen, oldVal, newVal), replaceLabels(labelsElse, oldVal, newVal))
+    }
+}
+
+replaceLabels(labels : [int], oldVal, newVal) -> [int] {
+    map(labels, \l -> replaceLabel(l, oldVal, newVal))
+}
+
+replaceLabel(label : int, oldVal : int, newVal : int) -> int {
+    if (label == oldVal) newVal else label;
 }

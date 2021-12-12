@@ -1,4 +1,5 @@
 import vm/machine;
+import common/translator;
 
 main () {
     nvmp = NemoVmProg([], []);

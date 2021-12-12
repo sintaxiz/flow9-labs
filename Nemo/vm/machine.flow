@@ -47,7 +47,7 @@ executeOperator(vmOp : Operator, values : Tree<string, NemoVar>) -> State {
                 }
             }
         }
-        ConditionOp(cond, lElse, lThen): {
+        ConditionOp(cond, lThen, lElse): {
             println("DEBUG: Condition -- " + toString(cond) + " then " + toString(lElse) + " else " + toString(lThen));
             switch (evaluatePredicate(cond, values).val) {
                 True(): State(lThen, values);
