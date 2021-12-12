@@ -1,13 +1,20 @@
 import nemo/structures;
+import nemo/typecheck;
 import vm/structures;
 import ds/array;
 
 export {
-    nemo2nemovm(nemoProg : NemoProg) -> NemoVmProg;
+    nemo2nemovm(nemoProg : NemoProg) -> Maybe<NemoVmProg>;
 }
 
-nemo2nemovm(nemoProg : NemoProg) -> NemoVmProg {
-    NemoVmProg(nemoProg.desc, nemoBody2vmOperators(nemoProg.body));
+nemo2nemovm(nemoProg : NemoProg) -> Maybe<NemoVmProg> {
+    if (checkTypes(nemoProg) != 0) {
+        println("ERROR: prog failed type cheking");
+        None();
+    } else {
+        println("DEBUG: succesfull type check!");
+        Some(NemoVmProg(nemoProg.desc, nemoBody2vmOperators(nemoProg.body)));
+    }
 }
 
 nemoBody2vmOperators(body : Body) -> [VmOperator] {
@@ -55,8 +62,8 @@ shiftOpsLabels(ops : [VmOperator], shift : int) {
 
 shiftOpLabels(op : Operator, shift : int) -> Operator {
     switch(op) {
-        AssignmentOp(var, exp, labels): 
-        AssignmentOp(var, exp, shiftLabels(labels, shift))
+        AssignmentOp(var, expr, labels): 
+        AssignmentOp(var, expr, shiftLabels(labels, shift))
 
         ConditionOp(cond, labelsThen, labelsElse): 
         ConditionOp (cond, shiftLabels(labelsThen, shift), shiftLabels(labelsElse, shift))
@@ -73,7 +80,7 @@ maxOpsLabel(vmOps : [VmOperator]) -> int {
 
 maxOpLabel(op : Operator) -> int {
     switch (op) {
-        AssignmentOp(var, exp, labels): maxLabel(labels)
+        AssignmentOp(var, expr, labels): maxLabel(labels)
         ConditionOp(cond, labelsThen, labelsElse): maxLabel(concat(labelsThen, labelsElse))
     }
 }
@@ -89,8 +96,8 @@ replaceOpsLabels(ops : [VmOperator], oldVal, newVal) -> [VmOperator] {
 
 replaceOpLabel(op : Operator, oldVal, newVal) -> Operator {
     switch(op) {
-        AssignmentOp(var, exp, labels): 
-        AssignmentOp(var, exp, replaceLabels(labels, oldVal, newVal))
+        AssignmentOp(var, expr, labels): 
+        AssignmentOp(var, expr, replaceLabels(labels, oldVal, newVal))
 
         ConditionOp(cond, labelsThen, labelsElse): 
         ConditionOp (cond, replaceLabels(labelsThen, oldVal, newVal), replaceLabels(labelsElse, oldVal, newVal))

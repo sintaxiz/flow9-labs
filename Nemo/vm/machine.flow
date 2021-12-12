@@ -1,4 +1,5 @@
 import vm/structures;
+import nemo/converters;
 import ds/tree;
 import string;
 
@@ -55,19 +56,6 @@ executeOperator(vmOp : Operator, values : Tree<string, NemoVar>) -> State {
             }
         }
     }
-}
-
-desc2nemovar(desc : Description) -> NemoVar {
-    switch (desc.type) {
-        IntType(): NemoInt(0);
-        ArrIntType(): NemoArr([]);
-        BoolType(): NemoBool(False());
-    }
-}
-
-descriptions2tree(descs : [Description]) -> Tree<string, NemoVar> {
-    fold(descs, makeTree(), \tree, desc ->
-        setTree(tree, desc.var.name, desc2nemovar(desc)));
 }
 
 vmOperators2tree(ops : [VmOperator]) -> Tree<int, Operator> {
@@ -185,11 +173,11 @@ evaluatePredicate(cond : Predicate, values : Tree<string, NemoVar>) -> NemoBool 
     }
 }
 
-evaluateExpr(exp : Expression, varValues : Tree<string, NemoVar>) -> NemoVar {
-    switch (exp) {
-        Operand(): evaluateOper(exp, varValues);
+evaluateExpr(expr : Expression, varValues : Tree<string, NemoVar>) -> NemoVar {
+    switch (expr) {
+        Operand(): evaluateOper(expr, varValues);
         ArExp(l, r, op): evaluateArExp(l, r, op, varValues);
-        FuncExp(): evaluateFuncExp(exp, varValues);
-        Predicate(l, r, sign): evaluatePredicate(exp, varValues);
+        FuncExp(): evaluateFuncExp(expr, varValues);
+        Predicate(l, r, s): evaluatePredicate(expr, varValues);
     }
 }

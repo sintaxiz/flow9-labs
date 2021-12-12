@@ -1,0 +1,80 @@
+import nemo/structures;
+import nemo/converters;
+import ds/tree;
+
+export {
+    checkTypes(np : NemoProg) -> int; 
+}
+
+checkTypes(np : NemoProg) -> int {
+    checkBodyType(np.body, descriptions2typeTree(np.desc));
+}
+
+checkBodyType(b : Body, vars : Tree<string, Type>) -> int {
+    switch (b) {
+        Assignment(l, r): checkAssignment(l, r, vars);
+        Test(pred): checkTest(pred, vars);
+        Choice(l, r): max(checkBodyType(l, vars), checkBodyType(r, vars))
+        Iteration(body): checkBodyType(body, vars)
+        Sequence(l, r): max(checkBodyType(l, vars), checkBodyType(r, vars))
+    }
+}
+
+checkAssignment(l : Var, r : Expression, vars : Tree<string, Type>) -> int {
+    switch (lookupTree(vars, l.name)) {
+        Some(nv): {
+            eitherMap(evalType(r, vars), \varType -> {
+                if (varType == nv) {
+                    0
+                } else {
+                    println("TYPECHECK: wrong assignemnt of " + toString(l));
+                    1
+                }
+            }, 1)             
+        }
+        None(): {
+            println("TYPECHECK: not declared variable: " + l.name);
+            1
+        }
+    }
+}
+
+checkTest(pred : Predicate, vars : Tree<string, Type>) -> int {
+    0
+}
+
+
+evalType(expr : Expression, vars : Tree<string, Type>) -> Maybe<Type> {
+    switch(expr) {
+        Int(val): Some(IntType())
+        Var(name): {
+            switch(lookupTree(vars, name)) {
+              Some(v): None();
+              None(): {
+                 println("TYPECHECK: not declared variable: " + name);
+                 None();
+                    }  
+                }  
+        }
+
+        ArExp(l, r, op): {
+            None();
+        }
+        AppFunc(v, i): {
+            None();
+        }
+        UpdFunc(v, i, newVal): {
+            None();
+        }
+        Predicate(l, r, relSign): {
+            None();
+        }
+
+    }
+     
+}
+
+descriptions2typeTree(descs : [Description]) -> Tree<string, Type> {
+    fold(descs, makeTree(), \tree, desc ->
+        setTree(tree, desc.var.name, desc.type));
+}

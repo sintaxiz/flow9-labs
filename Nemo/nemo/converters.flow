@@ -38,6 +38,9 @@ type2s(type : Type) -> string {
         IntType(): {
             "int"
         }
+        BoolType(): {
+            "bool"
+        }
     }
 }
 
@@ -58,4 +61,18 @@ body2s(body : Body) -> string {
 nemo2s(prog : NemoProg) -> string {
    "DESC: " + desc2s(prog.desc) + "\nBODY: " + body2s(prog.body);
 }
+
+descriptions2tree(descs : [Description]) -> Tree<string, NemoVar> {
+    fold(descs, makeTree(), \tree, desc ->
+        setTree(tree, desc.var.name, desc2nemovar(desc)));
+}
+
+desc2nemovar(desc : Description) -> NemoVar {
+    switch (desc.type) {
+        IntType(): NemoInt(0);
+        ArrIntType(): NemoArr([]);
+        BoolType(): NemoBool(False());
+    }
+}
+
 }

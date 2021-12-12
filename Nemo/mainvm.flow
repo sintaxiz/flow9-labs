@@ -1,7 +1,19 @@
 import vm/machine;
 import common/translator;
+import nemo/typecheck;
+import nemo/converters;
+
+testProg = "{var x : int; var y : [int]; } x := 1";
 
 main () {
-    nvmp = NemoVmProg([], []);
-    executeProg(nvmp);
+    switch(s2nemo(testProg)){
+        None(): println("ERROR: wrong test prog");
+        Some(np): {
+            switch (nemo2nemovm(np)) {
+                None(): println("ERROR: can not convert nemoprog to nemovmprog")
+                Some(nvmp):  executeProg(nvmp)
+            }
+           
+        }
+    }
 }
