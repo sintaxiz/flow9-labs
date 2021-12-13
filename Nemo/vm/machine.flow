@@ -32,7 +32,7 @@ executeOperators(start : Operator, ops : Tree<int, Operator>, values : Tree<stri
             }
         });
     } else {[]};
-    println("state after operator: " + toString(state));
+    println("state after executing operator: " + toString(state));
 }
 
 executeOperator(vmOp : Operator, values : Tree<string, NemoVar>) -> State {

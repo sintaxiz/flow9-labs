@@ -40,7 +40,15 @@ checkAssignment(l : Var, r : Expression, vars : Tree<string, Type>) -> int {
 }
 
 checkTest(pred : Predicate, vars : Tree<string, Type>) -> int {
-    0
+    eitherMap(evalType(pred.l, vars), \lType -> {
+         eitherMap(evalType(pred.r, vars), \rType -> {
+            if (lType != IntType() || rType != IntType()) {
+                1
+            } else {
+                0
+            }
+        }, 1)
+    }, 1)
 }
 
 
@@ -49,27 +57,57 @@ evalType(expr : Expression, vars : Tree<string, Type>) -> Maybe<Type> {
         Int(val): Some(IntType())
         Var(name): {
             switch(lookupTree(vars, name)) {
-              Some(v): None();
+              Some(v): Some(v);
               None(): {
                  println("TYPECHECK: not declared variable: " + name);
                  None();
-                    }  
                 }  
+            }  
         }
-
         ArExp(l, r, op): {
-            None();
+            switch (evalType(l, vars)) {
+                Some(ltype): {
+                    if (ltype != IntType()) {
+                        println("TYPECHECK: wrong type in expression, expected int, got -- " + toString(ltype));
+                        None();
+                    } else {
+                        switch (evalType(r, vars)) {
+                            Some(rtype): {
+                                if (rtype != IntType()) {
+                                    println("TYPECHECK: wrong type in expression, expected int, got -- " + toString(rtype));
+                                    None();
+                                } else {
+                                    Some(IntType());
+                                }
+                            }
+                            None(): None();
+                        }
+                    }
+                }
+                None(): None();
+            }
         }
         AppFunc(v, i): {
-            None();
+            switch(lookupTree(vars, v.name)) {
+              Some(var): Some(IntType());
+              None(): {
+                 println("TYPECHECK: not declared variable: " + v.name);
+                 None();
+                }  
+            }  
         }
         UpdFunc(v, i, newVal): {
-            None();
+            switch(lookupTree(vars, v.name)) {
+              Some(var): Some(IntType());
+              None(): {
+                 println("TYPECHECK: not declared variable: " + v.name);
+                 None();
+                }  
+            }   
         }
         Predicate(l, r, relSign): {
-            None();
+            Some(BoolType());
         }
-
     }
      
 }

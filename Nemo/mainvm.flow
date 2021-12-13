@@ -3,7 +3,7 @@ import common/translator;
 import nemo/typecheck;
 import nemo/converters;
 
-testProg = "{var x : int; var y : [int]; } x := 1";
+testProg = "{var x : int; var y : [int]; } (x := 4; x := (x + x))";
 
 main () {
     switch(s2nemo(testProg)){
@@ -13,7 +13,6 @@ main () {
                 None(): println("ERROR: can not convert nemoprog to nemovmprog")
                 Some(nvmp):  executeProg(nvmp)
             }
-           
         }
     }
 }
