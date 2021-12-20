@@ -1,17 +1,18 @@
-program     = "{" description*:d "}" body:b  {NemoProg(:d, :b)};
+program     = ws "{" description*:d "}" ws body:b ws {NemoProg(:d, :b)};
 description = ws "var " variable:v ":" type:t ";" ws {Description(:v, :t)};
-type        = int | arr;
+type        = int | arr | bool;
 int         = ws"int"ws {IntType()};
 arr         = ws "["ws type ws"]"ws {ArrIntType()};
+bool        = ws"bool"ws {BoolType()};
 body        = assignment | choice | iteration | sequence | test;   
 
 assignment  = variable:l ":=" expression:r {Assignment(:l, :r)};
-choice      = ws "(" body:l "U" body:r ")" {Choice(:l, :r)};
-iteration   = ws "(" body:b ")*" ws {Iteration(:b)};
-sequence    = ws "(" body:l ws ";" ws body:r ws ")" ws{Sequence(:l, :r)};
+choice      = ws "(" ws body:l "U" body:r ")" {Choice(:l, :r)};
+iteration   = ws "(" ws body:b ")*" ws {Iteration(:b)};
+sequence    = ws "(" ws body:l ws ";" ws body:r ws ")" ws{Sequence(:l, :r)};
 test        = ws "(" relation:r ")?"  ws {Test(:r)};
 
-expression  = operand | arexp | func;
+expression  = operand | arexp | func | relation;
 operand     = integer | variable;
 arexp       =  ws "(" expression:l ws sign$op ws expression:r ")" ws {ArExp(:l, :r, $op)};
 sign        = "+" | "-" | "*" | "/";
@@ -26,7 +27,7 @@ digit       ='0'-'9';
 variable    = ws char+$c ws {Var($c)};
 char        ='a'-'z';   
 
-relation = ws "(" expression:l ws relsign$s ws expression:r ")" {Predicate(:l, :r, $s)};
+relation = ws "(" ws expression:l ws relsign$s ws expression:r ws ")" ws {Predicate(:l, :r, $s)};
 relsign = "<" | ">" | ">=" | "<=";
 
 ws = s*;

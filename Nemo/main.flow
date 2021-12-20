@@ -1,37 +1,42 @@
 import maybe;
 import nemo/converters;
 import string;
+import vm/machine;
+import common/translator;
 
-emptyDescTest       = "{} x := 4";
+emptyDescTest       = "{} x := 4";                                  // should fail
 multipleDescTest    = "{var x : int; var y : [int]; } x := 4";
 assignmentTest      = "{var x : int; } x := 5 ";
-assignmentArExpTest = "{} x := ((4 + 5) * 2)"
-choiceTest          = "{var x : int; } (x := 5 U x := 10)";
-iterationTest       = "{var x : int; } (x := 5)* ";
+assignmentArExpTest = "{var x : int;  } x := ((4 + 5) * 2)"         // x == 18 after executing
+choiceTest          = "{var x : int; } (x := 5 U x := 10)";         
+iterationTest       = "{var x : int; } ( ((x < 2))? ; x := 5)";
 sequenceTest        = "{var x : int; } (x := 5; x := 2)"
-testTest            = "{var x : int; } ((x > y))?";
+boolTest            = "{var x : bool; } x := (3 < 2)";              // should be False()
 
-appTest             = "{var x : [int]; } x := APP(x,1)"
-updTest             = "{var x : [int]; } x := UPD(x,1, 1)"
+appTest             = "{var x : int; } x := APP(x,1)"
+updTest             = "{var x : int; } x := UPD(x,1, 1)"
+
 
 tests               = [ 
                     Pair(emptyDescTest, "emptyDescTest"),
                     Pair(multipleDescTest, "multipleDescTest"),
-                    Pair(assignmentTest, "emptyDescTest"),
-                    Pair(assignmentArExpTest, "emptyDescTest"),
-                    Pair(choiceTest, "emptyDescTest"),
-                    Pair(iterationTest, "emptyDescTest"),
-                    Pair(sequenceTest, "emptyDescTest"),
-                    Pair(testTest, "emptyDescTest"),
-                    Pair(appTest, "emptyDescTest"),
-                    Pair(updTest, "emptyDescTest") 
+                    Pair(assignmentTest, "assignmentTest"),
+                    Pair(assignmentArExpTest, "assignmentArExpTest"),
+                    Pair(choiceTest, "choiceTest"),
+                    Pair(iterationTest, "iterationTest"),
+                    Pair(sequenceTest, "sequenceTest"),
+                    Pair(boolTest, "boolTest"),
+                    Pair(appTest, "appTest"),
+                    Pair(updTest, "updTest") 
                     ];
 
-runTest(nemoProg : string) {
+runTest(nemoProg : string) -> void {
   switch (s2nemo(nemoProg)) {
         Some(res): {
             println(res);
             println(nemo2s(res));
+            vmNemo = nemo2nemovm(res);
+            eitherFn(vmNemo, \vmProg -> executeProg(vmProg), \ -> println("cannot translate prog into vm lang..."));
         }
         None(): {
             println("cannot parse program...");
@@ -40,6 +45,9 @@ runTest(nemoProg : string) {
 }
 
 main() {
+    
+    // fact = "{var fact : int; var counter : int; var result : int; } ((fact := 5; result := 1); ( (  ((counter < fact))?  ; (counter := (counter + 1); result := (result * counter)) ) )*)";
+
     map(tests, \t -> {
         switch (t : Pair) {
             Pair(test, testName): {

@@ -59,8 +59,10 @@ executeOperator(vmOp : Operator, values : Tree<string, NemoVar>) -> State {
 }
 
 vmOperators2tree(ops : [VmOperator]) -> Tree<int, Operator> {
-     fold(ops, makeTree(), \tree, op ->
-        setTree(tree, op.label, op.op));
+     fold(ops, makeTree(), \tree, op -> {
+        println("TESTING: " + i2s(op.label));
+        setTree(tree, op.label, op.op);
+     });
 }
 
 evaluateArExp(l : Expression, r : Expression, op : string, values : Tree<string, NemoVar>) -> NemoInt {
@@ -77,7 +79,7 @@ evaluateArExp(l : Expression, r : Expression, op : string, values : Tree<string,
                         NemoInt(lvar - rvar);
                     }
                     else if (op == "*") {
-                        NemoInt(lvar / rvar);
+                        NemoInt(lvar * rvar);
                     }
                     else if (op == "/") {
                         NemoInt(lvar / rvar);
