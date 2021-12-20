@@ -4,13 +4,14 @@ type        = int | arr | bool;
 int         = ws"int"ws {IntType()};
 arr         = ws "["ws type ws"]"ws {ArrIntType()};
 bool        = ws"bool"ws {BoolType()};
-body        = assignment | choice | iteration | sequence | test;   
+body        = assignment | choice | iteration | sequence | test | print;   
 
 assignment  = variable:l ":=" expression:r {Assignment(:l, :r)};
 choice      = ws "(" ws body:l "U" body:r ")" {Choice(:l, :r)};
 iteration   = ws "(" ws body:b ")*" ws {Iteration(:b)};
 sequence    = ws "(" ws body:l ws ";" ws body:r ws ")" ws{Sequence(:l, :r)};
 test        = ws "(" relation:r ")?"  ws {Test(:r)};
+print       = ws "print" ws "(" expression:e ")" {Print(:e)};
 
 expression  = operand | arexp | func | relation;
 operand     = integer | variable;
@@ -31,4 +32,4 @@ relation = ws "(" ws expression:l ws relsign$s ws expression:r ws ")" ws {Predic
 relsign = "<" | ">" | ">=" | "<=";
 
 ws = s*;
-s = " " | "\t" | "\n";
+s = " " | "\t" | "\n" | "\r";

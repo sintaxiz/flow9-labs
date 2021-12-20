@@ -17,6 +17,7 @@ checkBodyType(b : Body, vars : Tree<string, Type>) -> int {
         Choice(l, r): max(checkBodyType(l, vars), checkBodyType(r, vars))
         Iteration(body): checkBodyType(body, vars)
         Sequence(l, r): max(checkBodyType(l, vars), checkBodyType(r, vars))
+        Print(e): 0
     }
 }
 

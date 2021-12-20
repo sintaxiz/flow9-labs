@@ -5,8 +5,9 @@ export {
 
     VmOperator(label : int, op : Operator);
 
-    Operator ::= AssignmentOp, ConditionOp;
+    Operator ::= AssignmentOp, ConditionOp, PrintOp;
     AssignmentOp(var : Var, expr : Expression, labels : [int]);             // <var> := <expr> goto <labels>
     ConditionOp(cond : Predicate, labelsThen : [int], labelsElse : [int]);  // <cond> then <labelsThen> else <labelsElse>
+    PrintOp(e : Expression, labels : [int]);
     
 }

@@ -3,11 +3,12 @@ import common/structures;
 export {
     NemoProg(desc: [Description], body : Body);
     
-    Body ::= Assignment, Test, Sequence, Choice, Iteration;
+    Body ::= Assignment, Test, Sequence, Choice, Iteration, Print;
 
     Assignment(l : Var, r : Expression);
     Test(exp: Predicate);
     Choice(l : Body, r : Body);
     Iteration(body : Body);
     Sequence(l : Body, r : Body);
+    Print(e : Expression);
 }

@@ -55,6 +55,7 @@ body2s(body : Body) -> string {
         Choice(l, r): "(" + body2s(l) + " U " + body2s(r) + ")";
         Iteration(b): "(" + body2s(b) + ")";
         Sequence(l, r): "(" + body2s(l) + " ; " + body2s(r) + ")";
+        Print(e): "print(" + exp2s(e) + ")";
     }
 }
 

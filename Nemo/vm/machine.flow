@@ -14,32 +14,33 @@ executeProg(prog : NemoVmProg) {
     operators = vmOperators2tree(prog.body);
     switch(lookupTree(operators, 0)) {
         Some(vmOp): {
-            println("DEBUG: Start execute prog.");
+            //println("DEBUG: Start execute prog.");
             executeOperators(vmOp, operators, values);
-            println("DEBUG: End execute prog " + toString(prog));
+            //println("DEBUG: End execute prog " + toString(prog));
         }
         None(): println("RUNTIME ERROR: Programm does not have 0 label");
     }
 }
 
-executeOperators(start : Operator, ops : Tree<int, Operator>, values : Tree<string, NemoVar>) {
+executeOperators(start : Operator, ops : Tree<int, Operator>, values : Tree<string, NemoVar>) -> void {
     state = executeOperator(start, values);
     if (length(state.labels) != 0) {
         map(state.labels, \l -> {
             switch (lookupTree(ops, l)) {
                 Some(op): executeOperators(op, ops, state.values); 
-                None(): println("RUNTIME ERROR: No such label " + i2s(l));
+                None(): {};
             }
         });
-    } else {[]};
-    println("state after executing operator: " + toString(state));
+        {};
+    } 
+    //println("state after executing operator: " + toString(state));
 }
 
 executeOperator(vmOp : Operator, values : Tree<string, NemoVar>) -> State {
-    println("DEBUG: Executing operator -- " + toString(vmOp));
+    //println("DEBUG: Executing operator -- " + toString(vmOp));
     switch (vmOp) {
         AssignmentOp(v, e, l): {
-            println("DEBUG: Assignment -- " + v.name + " := " + toString(e) + " goto " + toString(l));
+            //println("DEBUG: Assignment -- " + v.name + " := " + toString(e) + " goto " + toString(l));
             switch(lookupTree(values, v.name)) {
                 Some(nemoVar): State(l, setTree(values, v.name, evaluateExpr(e, values)));
                 None(): {
@@ -49,18 +50,35 @@ executeOperator(vmOp : Operator, values : Tree<string, NemoVar>) -> State {
             }
         }
         ConditionOp(cond, lThen, lElse): {
-            println("DEBUG: Condition -- " + toString(cond) + " then " + toString(lElse) + " else " + toString(lThen));
+            //println("DEBUG: Condition -- " + toString(cond) + " then " + toString(lElse) + " else " + toString(lThen));
             switch (evaluatePredicate(cond, values).val) {
                 True(): State(lThen, values);
                 False(): State(lElse, values);
             }
         }
+        PrintOp(e, labels): {
+            //println("DEBUG: Print -- " + toString(e));
+            printNemoVar(evaluateExpr(e, values));
+            State(labels, values);
+        }
     }
+}
+
+printNemoVar(v : NemoVar) -> void {
+    switch (v) {
+        NemoArr(arr): {
+            map(arr, \arrElem -> printNemoVar(arrElem)); 
+            {} }
+        NemoInt(i):   println(i2s(i));
+        NemoBool(b):  switch (b) {
+            True():  println("TRUE");
+            False(): println("FALSE");
+        }
+    };
 }
 
 vmOperators2tree(ops : [VmOperator]) -> Tree<int, Operator> {
      fold(ops, makeTree(), \tree, op -> {
-        println("TESTING: " + i2s(op.label));
         setTree(tree, op.label, op.op);
      });
 }

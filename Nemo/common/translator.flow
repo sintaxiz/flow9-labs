@@ -12,7 +12,7 @@ nemo2nemovm(nemoProg : NemoProg) -> Maybe<NemoVmProg> {
         println("ERROR: prog failed type cheking");
         None();
     } else {
-        println("DEBUG: succesfull type check!");
+        //println("DEBUG: succesfull type check!");
         Some(NemoVmProg(nemoProg.desc, nemoBody2vmOperators(nemoProg.body)));
     }
 }
@@ -21,6 +21,7 @@ nemoBody2vmOperators(body : Body) -> [VmOperator] {
     switch (body) {
         Assignment(l, r): [VmOperator(0, AssignmentOp(l, r, [1]))]
         Test(pred): [VmOperator(0, ConditionOp(pred, [1], []))]
+        Print(e): [VmOperator(0, PrintOp(e, [1]))]
         Sequence(l, r): seq2VmOperators(l, r)
         Choice(l, r): choice2VmOperators(l, r)
         Iteration(it): iter2VmOperators(it)
@@ -65,8 +66,12 @@ shiftOpLabels(op : Operator, shift : int) -> Operator {
         AssignmentOp(var, expr, labels): 
         AssignmentOp(var, expr, shiftLabels(labels, shift))
 
+        PrintOp(var, labels): 
+        PrintOp(var, shiftLabels(labels, shift))
+
         ConditionOp(cond, labelsThen, labelsElse): 
         ConditionOp (cond, shiftLabels(labelsThen, shift), shiftLabels(labelsElse, shift))
+
     }
 }
 
@@ -81,6 +86,7 @@ maxOpsLabel(vmOps : [VmOperator]) -> int {
 maxOpLabel(op : Operator) -> int {
     switch (op) {
         AssignmentOp(var, expr, labels): maxLabel(labels)
+        PrintOp(e, labels): maxLabel(labels)
         ConditionOp(cond, labelsThen, labelsElse): maxLabel(concat(labelsThen, labelsElse))
     }
 }
@@ -98,6 +104,9 @@ replaceOpLabel(op : Operator, oldVal, newVal) -> Operator {
     switch(op) {
         AssignmentOp(var, expr, labels): 
         AssignmentOp(var, expr, replaceLabels(labels, oldVal, newVal))
+
+        PrintOp(var, labels): 
+        PrintOp(var, replaceLabels(labels, oldVal, newVal))
 
         ConditionOp(cond, labelsThen, labelsElse): 
         ConditionOp (cond, replaceLabels(labelsThen, oldVal, newVal), replaceLabels(labelsElse, oldVal, newVal))
